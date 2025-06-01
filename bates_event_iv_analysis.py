@@ -167,6 +167,3 @@ def objective_event(theta_evt, baseline_params, market_evt_df, dt_evt_arr):
     # combine baseline_params + event params in a dict
     # compute model IV with bates_cf(..., dt_evt=dt_evt_arr[i])
     pass  # TODO
-
-print("""\nSkeleton functions for Bates pricing & optimisation are included.
-Fill in the FFT pricer and calibration objectives when you're ready!""")
