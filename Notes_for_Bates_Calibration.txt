@@ -1,0 +1,120 @@
+BTC Option Volatility Analysis with Bates SVJ Model
+This repository contains Python scripts for analyzing the impact of news events on Bitcoin (BTC) option volatility using a Bates Stochastic Volatility Jump (SVJ) model. The scripts process Deribit options data and event timelines to calibrate the Bates model and count option quotes before and after news events on January 3, 2021.
+Project Overview
+The project performs two main tasks:
+
+Bates Model Calibration: Calibrates the Bates SVJ model to BTC option data in 1-minute windows before and after news events, computing parameter differences, volatility metrics, and jump contributions.
+Quote Counting: Counts BTC option quotes in 5-minute windows before and after news events to assess data availability.
+
+The scripts are modular, leveraging a shared utility library (bates_utils.py) for common functions like data loading, option preparation, and model calibration.
+Files
+
+bates_utils.py: Shared utility library containing functions for:
+Clearing the Python environment and console
+Configuring logging
+Loading and filtering event timelines and BTC options data
+Preparing option data for calibration
+Computing volatility metrics
+Estimating jump contributions
+Calibrating the Bates SVJ model
+
+
+bates_event_iv_analysis_calibrate_bates_params.py: Main script for calibrating the Bates model. It:
+Processes BTC option data in 1-minute windows around news events
+Calibrates the Bates model for pre- and post-event periods
+Computes parameter differences, volatility changes, and jump contributions
+Outputs results to bates_volatility_jump_analysis_1min.csv
+
+
+bates_event_iv_analysis_count_event.py: Script for counting option quotes. It:
+Counts BTC option quotes in 5-minute windows before and after news events
+Outputs a summary to event_quote_counts.csv
+
+
+
+Prerequisites
+
+Python 3.8+
+Required Libraries:
+pandas
+numpy
+QuantLib
+Install via pip:pip install pandas numpy QuantLib
+
+
+
+
+Data Files:
+BTC_Event_Timeline.csv: Event timeline with a newsDatetime column (in UTC).
+deribit_options_chain_2021-01-03_OPTIONS.csv: Deribit BTC options data for January 3, 2021, with columns like symbol, local_timestamp, timestamp, expiration, strike_price, underlying_price, mark_price, mark_iv, and type.
+Place these files in D:/2024-2025/Research/Paper6/Paper_6_News_Effect/1_Modeling/Data/BTC/ or update the DATA_DIR path in the scripts.
+
+
+
+Setup
+
+Clone the repository:git clone <repository-url>
+cd <repository-name>
+
+
+Ensure the required Python libraries are installed (see Prerequisites).
+Place the data files in the specified DATA_DIR or modify the DATA_DIR and OUTPUT_DIR paths in both main scripts:DATA_DIR = Path("path/to/your/data")
+OUTPUT_DIR = Path("path/to/your/output")
+
+
+Verify that bates_utils.py is in the same directory as the main scripts or in your Python module path.
+
+Usage
+
+Run the Calibration Script:
+python bates_event_iv_analysis_calibrate_bates_params.py
+
+
+Output: bates_volatility_jump_analysis_1min.csv in the OUTPUT_DIR (default: D:/2024-2025/Research/Paper6/Paper_6_News_Effect/1_Modeling/output/).
+Contains event IDs, timestamps, Bates model parameter differences, volatility changes, and jump contributions.
+
+
+Run the Quote Counting Script:
+python bates_event_iv_analysis_count_event.py
+
+
+Output: event_quote_counts.csv in the OUTPUT_DIR.
+Contains event IDs, timestamps, and counts of option quotes in pre- and post-event windows.
+
+
+Logs:
+
+The calibration script generates a log file (volatility_analysis_1min.log) in the OUTPUT_DIR with detailed processing information.
+The counting script prints summary output to the console.
+
+
+
+Directory Structure
+<repository-name>/
+├── bates_utils.py
+├── bates_event_iv_analysis_calibrate_bates_params.py
+├── bates_event_iv_analysis_count_event.py
+├── README.md
+├── Data/BTC/  (create this directory for data files)
+│   ├── BTC_Event_Timeline.csv
+│   ├── deribit_options_chain_2021-01-03_OPTIONS.csv
+└── output/  (created automatically for output files)
+    ├── bates_volatility_jump_analysis_1min.csv
+    ├── event_quote_counts.csv
+    ├── volatility_analysis_1min.log
+
+Notes
+
+Data Requirements: Ensure the data files are correctly formatted and contain the required columns. Missing or malformed data may cause errors, which are logged for the calibration script.
+Customization:
+Adjust WINDOW_MINUTES in the scripts to change the time window for analysis (1 minute for calibration, 5 minutes for counting).
+Modify file paths in the scripts if your data or output directories differ.
+
+
+Performance: The scripts process large options data files in chunks (default: 100,000 rows). Adjust chunk_size in the scripts if memory issues arise.
+Logging: The calibration script uses logging for debugging. To add logging to the counting script, import setup_logging from bates_utils.py and initialize it.
+
+License
+This project is licensed under the MIT License. See the LICENSE file for details (if added).
+Contact
+For questions or issues, please open a GitHub issue or contact the repository maintainer.
