@@ -13,3 +13,7 @@ Delete bates_event_iv_analysis, BTC_Event_Timeline.csv and processed_daily_data_
 Upload bates_utils, Paper_Event_effect_Count, Paper_Event_Effect_Calibrate_Parms
 
 #----------------------------------------------------------------------------------#
+2025-06-08
+Update: bates_utils
+Upload: optimized_bates_utils, Paper_Event_Effect_Pre_Data_Upload, BTC_Bates_Volatility
+#----------------------------------------------------------------------------------#
