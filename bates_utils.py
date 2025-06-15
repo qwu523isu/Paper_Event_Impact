@@ -66,12 +66,14 @@ def load_events(data_dir, target_date):
         logger.error(f"Error loading events: {e}")
         raise
 
-def load_btc_options(data_dir, filename, chunk_size=100000):
+#def load_btc_options(data_dir, filename, chunk_size=100000):
+def load_btc_options(filename, chunk_size=100000):    
     """Load and filter BTC options data in chunks."""
     logger = logging.getLogger(__name__)  # Define logger at the beginning
     
     try:
-        chunk_iter = pd.read_csv(data_dir / filename, chunksize=chunk_size)
+        #chunk_iter = pd.read_csv(data_dir / filename, chunksize=chunk_size)
+        chunk_iter = pd.read_csv(filename, chunksize=chunk_size)
         filtered_chunks = []
         
         for chunk in chunk_iter:
