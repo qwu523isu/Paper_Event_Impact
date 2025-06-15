@@ -25,3 +25,13 @@ Update: bates_utils
 Upload: optimized_bates_utils, Paper_Event_Effect_Pre_Data_Upload, BTC_Bates_Volatility
 
 #----------------------------------------------------------------------------------#
+
+2025-06-15
+
+Update: bates_utils
+
+Upload: Paper_Event_Effect_Volatility_Local
+
+Run volatility calibration by parallel running and in local
+
+#----------------------------------------------------------------------------------#
