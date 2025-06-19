@@ -35,3 +35,19 @@ Upload: Paper_Event_Effect_Volatility_Local
 Run volatility calibration by parallel running and in local
 
 #----------------------------------------------------------------------------------#
+2025-06-19
+
+Upload: 
+
+Paper_Event_Effect_Volatility_Local
+
+Paper_Event_Effect_Volatility_Local_External_Event_Effect
+
+Paper_Event_Effect_Pre_Data_Upload_V2
+
+Paper_Event_Effect_Plot_Volatility
+
+Paper_Event_Effect_Plot_Volatility_All_External
+
+
+Perform PEVA2 and PEVA5 in https://wuqiongisu.atlassian.net/jira/core/projects/PEVA/summary
