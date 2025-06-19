@@ -127,8 +127,9 @@ def load_btc_options(filename, chunk_size=100000):
         logger.error(f"Error loading BTC data: {e}")
         raise
 
+
 def prepare_options(df, now):
-    """Build the skinny DataFrame calibrate_bates() expects."""
+    #Build the skinny DataFrame calibrate_bates() expects.
     logger = logging.getLogger(__name__)
     if df.empty:
         logger.warning("Empty DataFrame provided")
@@ -144,10 +145,14 @@ def prepare_options(df, now):
     # ---- strike ----------------------------------------------------------
     g["strike"] = g["strike_price"]
     # ---- price -----------------------------------------------------------
-    if "mark_price" in g and "underlying_price" in g:
-        g["price"] = g["mark_price"] * g["underlying_price"]
+    # Use mark_price directly as the option price in USD, which is the expected unit for QuantLib
+    if "mark_price" in g:
+        g["price"] = g["mark_price"]
+        logger.debug(f"Using mark_price as price, range: {g['price'].min():.2f} to {g['price'].max():.2f}")
     else:
-        g["price"] = g["last_price"]
+        # Fallback to last_price scaled by underlying_price if mark_price is unavailable
+        g["price"] = g["last_price"] * g["underlying_price"]
+        logger.warning("mark_price not found, falling back to last_price * underlying_price")
     # ---- opt_type --------------------------------------------------------
     g["opt_type"] = g["type"].str[0].str.upper()
     g = g[["strike", "tau", "price", "opt_type"]]
@@ -158,25 +163,74 @@ def prepare_options(df, now):
     g = g[(g.price > 0) & (g.strike > 0) & (g.tau > 0)]
     if g.empty:
         logger.warning("No valid options after price/strike/tau filter")
-    logger.debug(f"Prepared {len(g)} options after cleaning")
+    logger.debug(f"Prepared {len(g)} options after cleaning, price range: {g['price'].min():.2f} to {g['price'].max():.2f}")
     return g
-"""
-def compute_volatility_metrics(df, s0, timestamp_col="local_timestamp"):
-    # Compute realized volatility and average implied volatility for the window.
+
+# Alternative: Auto-detect the interpretation
+def prepare_options_auto_detect(df, now):
+    """
+    Auto-detect whether mark_price is direct USD or percentage.
+    """
     logger = logging.getLogger(__name__)
-    if df.empty or len(df) < 2:
-        logger.warning("Insufficient data for volatility metrics")
-        return {"realized_vol": np.nan, "avg_implied_vol": np.nan}
+    if df.empty:
+        logger.warning("Empty DataFrame provided")
+        return df
     
-    time_diff = df[timestamp_col].diff().dt.total_seconds().mean()
-    logger.debug(f"Average time between quotes: {time_diff:.2f} seconds")
-    scaling = np.sqrt(252 * 24 * 3600) if time_diff < 60 else np.sqrt(252 * 24 * 60)
-    log_returns = np.log(df["underlying_price"] / df["underlying_price"].shift(1))
-    realized_vol = np.std(log_returns, ddof=1) * scaling
-    avg_implied_vol = df["mark_iv"].clip(0, 2).mean() if "mark_iv" in df else np.nan
+    g = df.copy()
     
-    return {"realized_vol": realized_vol, "avg_implied_vol": avg_implied_vol}
-"""
+    # Calculate tau and strike as before
+    if "DTE_float" in g:
+        g["tau"] = g["DTE_float"] / 365.0
+    else:
+        g["tau"] = ((pd.to_datetime(g["expiration"], utc=True) - now)
+                    .dt.total_seconds() / (365 * 24 * 3600))
+    g["strike"] = g["strike_price"]
+    
+    # Smart price detection
+    if "mark_price" in g and "underlying_price" in g:
+        # Test a sample to determine interpretation
+        sample_mark = g["mark_price"].iloc[0] if len(g) > 0 else 0
+        sample_underlying = g["underlying_price"].iloc[0] if len(g) > 0 else 1
+        
+        # If mark_price is very small compared to underlying, it's likely a percentage
+        if sample_mark < 1.0 and sample_underlying > 1000:
+            # Percentage interpretation
+            g["price"] = g["mark_price"] * g["underlying_price"]
+            logger.info(f"Auto-detected percentage interpretation. "
+                       f"Sample: {sample_mark:.6f} × ${sample_underlying:.0f} = "
+                       f"${sample_mark * sample_underlying:.2f}")
+        else:
+            # Direct USD interpretation
+            g["price"] = g["mark_price"]
+            logger.info(f"Auto-detected direct USD interpretation. "
+                       f"Sample: ${sample_mark:.2f}")
+    else:
+        # Fallback logic
+        if "mark_price" in g:
+            g["price"] = g["mark_price"]
+        else:
+            g["price"] = g["last_price"] * g["underlying_price"]
+        logger.warning("Using fallback price calculation")
+    
+    # Rest of the function (validation, filtering, etc.)
+    g["opt_type"] = g["type"].str[0].str.upper()
+    g = g[["strike", "tau", "price", "opt_type"]]
+    g = g.replace([np.inf, -np.inf], np.nan).dropna()
+    
+    initial_count = len(g)
+    valid_mask = (g.price > 0) & (g.strike > 0) & (g.tau > 0)
+    g = g[valid_mask]
+    
+    dropped_count = initial_count - len(g)
+    if dropped_count > 0:
+        logger.warning(f"Dropped {dropped_count} rows due to invalid values")
+    
+    if not g.empty:
+        logger.debug(f"Final result: {len(g)} options, "
+                    f"price range: ${g['price'].min():.2f} to ${g['price'].max():.2f}")
+    
+    return g
+
 
 def compute_volatility_metrics(df, s0, timestamp_col="local_timestamp"):
     logger = logging.getLogger(__name__)
